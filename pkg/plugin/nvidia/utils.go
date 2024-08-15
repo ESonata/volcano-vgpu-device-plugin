@@ -79,7 +79,9 @@ func GetDevices(gpuMemoryFactor uint) ([]*pluginapi.Device, map[uint]string) {
 		if GetGPUMemory() == uint(0) {
 			SetGPUMemory(uint(*d.Memory))
 		}
-		for j := uint(0); j < GetGPUMemory()/gpuMemoryFactor; j++ {
+
+		//在这里注册了每一个显存资源和core资源
+		for j := uint(0); j < (GetGPUMemory()*2)/gpuMemoryFactor; j++ {
 			fakeID := GenerateVirtualDeviceID(id, j)
 			virtualDevs = append(virtualDevs, &pluginapi.Device{
 				ID:     fakeID,

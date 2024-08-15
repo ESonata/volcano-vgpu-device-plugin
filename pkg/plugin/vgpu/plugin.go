@@ -259,12 +259,31 @@ func (m *NvidiaDevicePlugin) GetDevicePluginOptions(context.Context, *pluginapi.
 
 // ListAndWatch lists devices and update that list according to the health status
 func (m *NvidiaDevicePlugin) ListAndWatch(e *pluginapi.Empty, s pluginapi.DevicePlugin_ListAndWatchServer) error {
+	klog.Infoln("ListAndWatch Call.......")
 	if m.resourceName == util.ResourceMem {
 		err := s.Send(&pluginapi.ListAndWatchResponse{Devices: m.virtualDevices})
 		if err != nil {
 			log.Fatalf("failed sending devices %d: %v", len(m.virtualDevices), err)
 		}
+		if err != nil {
+			return err
+		}
+		klog.Infoln("01 ListAndWatch get virtualDevices:", m.virtualDevices)
+		klog.Infoln("01 ListAndWatch get virtualDevices:", len(m.virtualDevices))
+		for k, v := range m.virtualDevices {
+			klog.Infoln("01 ListAndWatch:", k, v)
+			marshal, err := v.Marshal()
+			if err != nil {
+				return err
+			}
+			klog.Infoln("01 ListAndWatch get marshal", string(marshal))
+			klog.Infoln("01 ListAndWatch get GetTopology", v.GetTopology())
+			klog.Infoln("01 ListAndWatch get XXX_Size", v.XXX_Size())
+			klog.Infoln("01 ListAndWatch get GetHealth", v.GetHealth())
+			klog.Infoln("01 ListAndWatch get GetID", v.GetID())
+			//klog.Infoln("01 ListAndWatch get Descriptor", interface{}(v.Descriptor()))
 
+		}
 		for {
 			select {
 			case <-m.stop:
@@ -498,10 +517,13 @@ func (m *NvidiaDevicePlugin) apiDevices() []*pluginapi.Device {
 		klog.Infoln("res length=", len(res))
 		return res
 	}
+
+	//注册vgpu-memory数量
 	if strings.Compare(m.resourceName, util.ResourceCores) == 0 {
 		for _, dev := range devices {
+			//在这里注册100的算力资源
 			i := 0
-			for i < 100 {
+			for i < 100*2 {
 				res = append(res, &pluginapi.Device{
 					ID:       fmt.Sprintf("%v-core-%v", dev.ID, i),
 					Health:   dev.Health,
@@ -513,6 +535,7 @@ func (m *NvidiaDevicePlugin) apiDevices() []*pluginapi.Device {
 		return res
 	}
 
+	//注册vgpu-number数量
 	for _, dev := range devices {
 		for i := uint(0); i < config.DeviceSplitCount; i++ {
 			id := fmt.Sprintf("%v-%v", dev.ID, i)
