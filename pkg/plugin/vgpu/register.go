@@ -66,7 +66,7 @@ func (r *DeviceRegister) apiDevices() *[]*util.DeviceInfo {
 		res = append(res, &util.DeviceInfo{
 			Id:     dev.ID,
 			Count:  int32(config.DeviceSplitCount),
-			Devmem: registeredmem,
+			Devmem: registeredmem * 2,
 			Type:   fmt.Sprintf("%v-%v", "NVIDIA", *ndev.Model),
 			Health: dev.Health == "healthy",
 		})
